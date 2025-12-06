@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, FastAPI
 
-from app.routes import auth, events, metrics, news, projects, rooms, status, system_status, tasks
+from app.routes import auth, events, metrics, news, projects, rooms, status, system_status, tasks, users
 
 api_router = APIRouter(prefix="/api")
 
@@ -15,6 +15,7 @@ api_router.include_router(rooms.router)
 api_router.include_router(tasks.router)
 api_router.include_router(metrics.router)
 api_router.include_router(system_status.router)
+api_router.include_router(users.router)
 
 
 def register_routes(app: FastAPI) -> None:

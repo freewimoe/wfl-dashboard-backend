@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from app.schemas.summary import EventSummary, NewsSummary
+
 
 class ProjectBase(BaseModel):
     """Shared project fields."""
@@ -34,3 +36,13 @@ class ProjectRead(ProjectBase):
     created_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+
+class ProjectSummaryStats(BaseModel):
+    """Aggregated details for a single project dashboard view."""
+
+    project: ProjectRead
+    total_tasks: int
+    task_counts: dict[str, int]
+    upcoming_events: list[EventSummary]
+    recent_news: list[NewsSummary]

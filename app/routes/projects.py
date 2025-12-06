@@ -1,12 +1,19 @@
 """Project management endpoints."""
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.dependencies import require_roles
+from app.db.models.event import Event
+from app.db.models.news import News
 from app.db.models.project import Project
+from app.db.models.task import Task
 from app.db.session import get_db
-from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
+from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate, ProjectSummaryStats
+from app.schemas.summary import EventSummary, NewsSummary
 
 PROJECT_NOT_FOUND = "Project not found"
 
@@ -36,6 +43,66 @@ def get_project(project_id: int, db: Session = Depends(get_db)) -> ProjectRead:
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROJECT_NOT_FOUND)
     return ProjectRead.model_validate(project)
+
+
+@router.get("/{project_id}/summary", response_model=ProjectSummaryStats, summary="Project detail summary")
+def get_project_summary(project_id: int, db: Session = Depends(get_db)) -> ProjectSummaryStats:
+    """Return task counts, upcoming events, and recent news for a project."""
+
+    project = db.get(Project, project_id)
+    if project is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROJECT_NOT_FOUND)
+
+    statuses = ["open", "in_progress", "done"]
+    counts: dict[str, int] = {}
+    for status_name in statuses:
+        count = (
+            db.query(func.count(Task.id))
+            .filter(Task.project_id == project_id, Task.status == status_name)
+            .scalar()
+        )
+        counts[status_name] = int(count or 0)
+
+    now = datetime.now(timezone.utc)
+    upcoming_events = (
+        db.query(Event)
+        .filter(Event.project_id == project_id, Event.start >= now)
+        .order_by(Event.start.asc())
+        .limit(5)
+        .all()
+    )
+    recent_news = (
+        db.query(News)
+        .filter(News.project_id == project_id)
+        .order_by(News.created_at.desc())
+        .limit(5)
+        .all()
+    )
+
+    return ProjectSummaryStats(
+        project=ProjectRead.model_validate(project),
+        total_tasks=sum(counts.values()),
+        task_counts=counts,
+        upcoming_events=[
+            EventSummary(
+                id=event.id,
+                title=event.title,
+                start=event.start,
+                end=event.end,
+                room_id=event.room_id,
+            )
+            for event in upcoming_events
+        ],
+        recent_news=[
+            NewsSummary(
+                id=item.id,
+                title=item.title,
+                created_at=item.created_at,
+                tags=item.tags,
+            )
+            for item in recent_news
+        ],
+    )
 
 
 @router.post("", response_model=ProjectRead, status_code=status.HTTP_201_CREATED, summary="Create project")

@@ -26,6 +26,12 @@ class UserUpdate(BaseModel):
     role: str | None = None
 
 
+class UserPasswordUpdate(BaseModel):
+    """Payload to update a user's password."""
+
+    password: str = Field(..., min_length=12)
+
+
 class UserRead(UserBase):
     """User representation returned by the API."""
 

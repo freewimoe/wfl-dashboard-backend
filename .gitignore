@@ -5,6 +5,7 @@ __pycache__/
 
 # Virtual environments
 .venv/
+.ven/
 venv/
 
 # Distribution / packaging
@@ -30,6 +31,7 @@ dist/
 # Local tooling
 coverage/
 .DS_Store
+data.db
 
 # Chat logs
 chat-logs/

@@ -1,5 +1,7 @@
 """REST endpoints for managing news entries."""
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -20,16 +22,22 @@ def list_news(
 	db: Session = Depends(get_db),
 	tag: str | None = Query(default=None, description="Filter by tag"),
 	is_public: bool | None = Query(default=None, description="Restrict to public/private"),
+	since: datetime | None = Query(default=None, description="Return entries created after timestamp"),
+	limit: int | None = Query(default=None, ge=1, le=100, description="Maximum number of entries"),
 ) -> list[NewsRead]:
 	"""Return news entries filtered by optional criteria."""
 
 	query = db.query(News)
 	if is_public is not None:
 		query = query.filter(News.is_public == is_public)
+	if since is not None:
+		query = query.filter(News.created_at >= since)
 
 	news_entries = query.order_by(News.created_at.desc()).all()
 	if tag:
 		news_entries = [item for item in news_entries if item.tags and tag in item.tags]
+	if limit is not None:
+		news_entries = news_entries[:limit]
 	return [NewsRead.model_validate(item) for item in news_entries]
 
 
