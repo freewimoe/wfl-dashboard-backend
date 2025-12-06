@@ -1,0 +1,36 @@
+"""Pydantic schemas for project resources."""
+
+from datetime import datetime
+
+from pydantic import BaseModel, Field
+
+
+class ProjectBase(BaseModel):
+    """Shared project fields."""
+
+    title: str = Field(..., max_length=255)
+    description: str | None = None
+    status: str = Field(default="green")
+    responsible_user_id: int | None = None
+
+
+class ProjectCreate(ProjectBase):
+    """Payload for creating a project."""
+
+
+class ProjectUpdate(BaseModel):
+    """Fields that may be updated on a project."""
+
+    title: str | None = Field(default=None, max_length=255)
+    description: str | None = None
+    status: str | None = None
+    responsible_user_id: int | None = None
+
+
+class ProjectRead(ProjectBase):
+    """Project representation returned by the API."""
+
+    id: int
+    created_at: datetime | None = None
+
+    model_config = {"from_attributes": True}

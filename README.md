@@ -1,6 +1,6 @@
 # WfL Dashboard Backend
 
-FastAPI-Backend für den NiPoGi-Server von "Wir für Lukas". Das Projekt liefert Status- und News-Endpunkte als Grundlage für das spätere Dashboard-Frontend.
+FastAPI-Backend für den NiPoGi-Server von "Wir für Lukas". Das Projekt bündelt Projekt-, Termin-, Aufgaben- und Statusdaten für das interne Dashboard.
 
 ## Voraussetzungen
 
@@ -21,13 +21,33 @@ pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Wichtige Endpunkte:
+### Datenbank
 
-- `GET /status` – einfacher Health-Check
-- `GET /news` – Beispiel-News-Einträge
+Standardmäßig nutzt die App SQLite (`data.db` im Projektverzeichnis). Passe die `DATABASE_URL` in `.env` an, um PostgreSQL oder andere Backends zu verwenden.
 
-## Nächste Schritte
+```env
+DATABASE_URL=sqlite:///./data.db
+SECRET_KEY=please-change-me
+```
 
-- Routen um Authentifizierung und weitere Domain-Funktionen erweitern
-- Datenhaltung (z. B. PostgreSQL, SQLite oder REST-Quellen) anbinden
-- Frontend-Dashboard anbinden und CORS-Regeln einschränken
+Beim Start erzeugt die App automatisch alle Tabellen. Für Migrationen kann Alembic ergänzt werden.
+
+### Kern-Endpunkte (`/api/...`)
+
+- `POST /auth/login` – JWT anfordern
+- `POST /auth/users` – Benutzer verwalten (Admin)
+- `GET/POST/PUT /projects` – Projekte & Status
+- `GET/POST/PUT/DELETE /news` – Nachrichten mit Tags & Sichtbarkeit
+- `GET/POST/PUT/DELETE /events` – Termine mit Raumbezug
+- `GET/POST/PUT/DELETE /rooms` – Räume pflegen
+- `GET/POST/PATCH /tasks` – Aufgaben und Zuständigkeiten
+- `GET/POST/PATCH /metrics` – Kennzahlen pflegen
+- `GET/POST/PATCH /system/status` – Dienstestatus
+- `GET /status/summary` – Übersicht für das Dashboard (Projekte, Termine, News)
+
+## Weiteres
+
+- Rollen: `admin`, `vorstand`, `team`, `mitarbeit`, `public`
+- Authentifizierung via JWT; Passwörter werden mit bcrypt gehasht
+- CORS ist aktuell offen (`*`); für Produktion anpassen
+- Tests & Migrationen sind placeholders und sollten erweitert werden

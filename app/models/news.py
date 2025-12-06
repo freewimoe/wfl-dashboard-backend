@@ -1,13 +1,4 @@
-"""Pydantic models for news domain objects."""
+"""Legacy placeholder retained for backward compatibility.
 
-from datetime import date
-
-from pydantic import BaseModel
-
-
-class NewsItem(BaseModel):
-	"""Textual update shown on the dashboard."""
-
-	id: int
-	title: str
-	timestamp: date
+Use `app.schemas.news` for current Pydantic models.
+"""
