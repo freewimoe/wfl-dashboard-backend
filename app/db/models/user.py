@@ -23,7 +23,7 @@ class User(Base):
     projects_responsible = relationship("Project", back_populates="responsible_user")
     news_entries = relationship("News", back_populates="author")
     events_created = relationship("Event", back_populates="creator")
-    tasks_assigned = relationship("Task", back_populates="assignee")
+    tasks_assigned = relationship("Task", back_populates="assignee", foreign_keys="Task.assignee_id")
     tasks_created = relationship("Task", back_populates="creator", foreign_keys="Task.created_by")
 
     __table_args__ = (
